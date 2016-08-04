@@ -1,5 +1,12 @@
-﻿$IPRegex = "(\d{1,3}\.){3}\d{1,3}"
+$ErrorActionPreference = "SilentlyContinue"
+$IPRegex = "(\d{1,3}\.){3}\d{1,3}"
 $MACRegex = "([A-F0-9]{2}-?){6}"
+
+if ($host.Version -lt [Version]"3.0") {
+    Write-Host ("Your version of Powershell is too old!`n`n" + $host.Version + "`n`nPlease update or run from another computer!")
+    cmd /c pause | out-null
+    exit
+}
 
 $success = $false
 while (-Not $success) {
@@ -48,7 +55,7 @@ Write-Host ($separator)
 
 
 $macstrings = getmac /s $hostname /v /fo csv 
-$adapterpriority = "Wi-Fi", "Ethernet", "Lokal", "Local"
+$adapterpriority = "Wi-Fi", "Wireless", "Tr.dl.s", "Ethernet", "Lokal", "Local"
 foreach ($adapter in $adapterpriority) {
     $macstring = $macstrings | select-string $adapter
     if ("$macstring".length -gt 0) {
