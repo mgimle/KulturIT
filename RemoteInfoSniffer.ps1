@@ -22,10 +22,10 @@ while (-Not $success) {
 }
 
 if ([regex]::Match($hostname, $IPRegex).Success){
-	$hostip = $hostname
+    $hostip = $hostname
 } else {
-	$hostip = ([regex]::Match((nslookup $hostname)[4], $IPRegex)).value
-	Write-Host ("Resolved IP. " + $hostname + " has IP " + $hostip + "`n")
+    $hostip = ([regex]::Match((nslookup $hostname)[4], $IPRegex)).value
+    Write-Host ("Resolved IP. " + $hostname + " has IP " + $hostip + "`n")
 }
 Start-Sleep -m 500 # Small delay for visual flow
 Write-Host ("Success! Connected to " + $hostname + ".`n")
