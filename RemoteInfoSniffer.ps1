@@ -69,6 +69,11 @@ for ($i=0; $i -le 2; $i++){
     Write-Host ($infonames[$i] + $macinfo[$i])
 }
 Write-Host ($separator)
-Write-Host ("Copyable MAC : ".PadRight(20) + (([regex]::Match($macstring, $MACRegex)).value -replace '-', '').ToLower())
+$copiableMAC = (([regex]::Match($macstring, $MACRegex)).value -replace '-', '').ToLower()
+Write-Host ("Copyable MAC : ".PadRight(20) + $copiableMAC)
 Write-Host ($separator)
-pause
+$command = Read-Host ("Press C to copy MAC to clipboard, enter to exit ")
+if ("$command".ToLower() -eq "c"){
+    $copiableMAC | clip
+}
+
