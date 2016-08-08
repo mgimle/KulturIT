@@ -276,6 +276,14 @@ Function Get-Switch-Config {
                 Write-Verbose "Could not download."
             }
 
+            # Move old config file to .\OLD\ folder
+            if (! (Test-Path "$OutPath\OLD")) {
+                Write-Verbose "Making OLD-folder"
+                md "$OutPath\OLD" | Out-Null
+            }
+            Write-Verbose "Attempting to move $OutPath\$RemoteHost* to $OutPath\OLD\"
+            Move-Item "$OutPath\$RemoteHost*" "$OutPath\OLD"
+
             # Move file to correct location
             Write-Verbose "Attempting to move $RootPath\$TempFolder\$OutputFile -> $OutPath"
             Move-Item "$RootPath\$TempFolder\$OutputFile" "$(Resolve-Path $OutPath)\$OutputFile"
@@ -317,8 +325,12 @@ Function Get-Switch-Config {
 
 # Get-Switch-Config -RemoteHosts "@Foo\BAR\switches.txt" -OutPath ".\Foo\BAR" -Prompt
 
+$pass = Read-Host -AsSecureString "Please Enter Password "
+# Convert secure password to one that can be issued to switch
+$pass = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pass))
+
 ForEach ($path in (gci . -Directory -Recurse | % { gci $_.FullName -File -Filter "switches.txt" }).FullName) {
-    Get-Switch-Config -RemoteHosts "@$path" -OutPath $(Split-Path $path)
+    Get-Switch-Config -RemoteHosts "@$path" -OutPath $(Split-Path $path) -Password $pass -Verbose
 }
 
 # (gci . -Directory -Recurse | % { gci $_.FullName -File -Filter "switches.txt" }).FullName
