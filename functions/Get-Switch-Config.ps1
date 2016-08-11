@@ -1,4 +1,6 @@
 ﻿
+$ErrorActionPreference = SilentlyContinue
+
 Function Get-Switch-Config { 
     [CmdletBinding()]
     Param (
