@@ -1,6 +1,4 @@
 ﻿
-$ErrorActionPreference = SilentlyContinue
-
 Function Get-Switch-Config { 
     [CmdletBinding()]
     Param (
@@ -8,10 +6,10 @@ Function Get-Switch-Config {
         [string[]]$RemoteHosts,
         [switch]$Prompt,
         [string]$Password,
-        [string]$RootPath = "K:\System_Teknisk\Powershell Script\TFTP",
+        [string]$RootPath = "K:\Dokumentasjon\10 MuseumsIT\Nettverk\Konfigfiler - Automatisk Backup",
         [string]$LogPath = "$RootPath\get-config_$(Get-Date -format "dd.MM.yyyy hh.mm.ss").log",
         [string]$OutPath = ".\",
-        [string]$Prog = "$rootPath\tftpd64.exe",
+        [string]$Prog = "K:\System_Teknisk\Powershell Script\TFTP\tftpd64.exe",
         [string]$Port = "23",
         [int]$WaitTime = 200,
         [switch]$NoLog,
@@ -19,6 +17,8 @@ Function Get-Switch-Config {
         [switch]$OverWrite
     )
     #region BEGIN
+    $StartFolder = (Get-Location).Path
+
     $TempFolder = "R"
     cd $RootPath
 
@@ -26,10 +26,12 @@ Function Get-Switch-Config {
         Write-Verbose "Reading from file"
         $Path = (Resolve-Path "$(@($RemoteHosts)[0])".Substring(1)).Path
         $RemoteHosts = Get-Content $Path
-    }
+    }e
 
-    if ($input) {
-        $RemoteHosts = $input | ? { "$_" -notmatch "^#.+" }
+    if ($input -match "(\d{1,3}\.){3}\d{1,3}") {
+        if ($input) {
+            $RemoteHosts = $input | ? { "$_" -notmatch "^#.+" }
+        }
     }
     $RemoteHostCount = @($RemoteHosts).Length
 
@@ -368,6 +370,7 @@ Function Get-Switch-Config {
         $SessionLog | Out-File $LogPath -Append
     }
 
+    cd $StartFolder
     #endregion END
 }
 

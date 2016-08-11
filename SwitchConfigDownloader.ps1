@@ -7,21 +7,26 @@ clear-host
 # importing the function
 . "K:\System_Teknisk\Powershell Script\functions\Get-Switch-Config.ps1"
 
-$TftpPath = "K:\System_Teknisk\Powershell Script\TFTP"
+$TftpPath = "K:\System_Teknisk\Powershell Script\TFTP\tftpd64.exe"
+$RootPath = "K:\Dokumentasjon\10 MuseumsIT\Nettverk\Konfigfiler - Automatisk Backup"
 $WaitTime = 150
 $AutoTries = 4
-$SearchRoot = ".\Konfigfiler"
-$LogDir = ".\logs"
-$Structure = ".\structure.txt"
+$SearchRoot = "$RootPath\Konfigfiler"
+$LogDir = "$RootPath\logs"
+$Structure = "$RootPath\structure.txt"
 
-$FailLog = ".\get-config_FAILURES.log"
+$FailLog = "$LogDir\get-config_FAILURES.log"
 
-if (! (Test-Path $TftpPath)) {
-    Write-Host "Cannot find tftp path! It should be `"$TftpPath`". Make sure it's visible and try again."
+if (! (Test-Path $RootPath)) {
+    Write-Host "Cannot find root path! It should be `"$TftpPath`". Make sure it's available and try again."
     pause
     exit
-} else {
-    cd $TftpPath
+}
+
+if (! (Test-Path $TftpPath)) {
+    Write-Host "Cannot find tftp path! It should be `"$TftpPath`". Make sure it's available and try again."
+    pause
+    exit
 }
 
 if (! (Test-Path $LogDir)) {
@@ -48,7 +53,7 @@ while (! ($MenuOptions -contains $Selection)) {
 # executed every time the program is run.
 if ($Selection -eq 3) {
     Write-Host "Reconstructing structure table..."
-    (gci .\Konfigfiler -Directory -Recurse -Exclude "OLD" | % { (gci $_ | ? { $_.Extension -match "pcc" }).FullName }) > structure.txt
+    (gci $SearchRoot -Directory -Recurse -Exclude "OLD" | % { (gci $_ | ? { $_.Extension -match "pcc" }).FullName }) > "$RootPath\structure.txt"
     Write-Host "Done."
     pause
     exit
@@ -101,7 +106,7 @@ if ($Selection -eq 0 -or $Selection -eq 2){
 if ($Selection -eq 0) {
     # Go through all of the switches.txt and output the log file in the same directory
     ForEach ($Path in (gci $SearchRoot -Directory -Recurse | % { gci $_.FullName -File -Filter "switches.txt" }).FullName) {
-        Get-Switch-Config -RemoteHosts "@$Path" -OutPath "$(Split-Path $Path)" -Password "$Pass" `
+        Get-Switch-Config -RemoteHosts "@$Path" -OutPath "$(Split-Path $Path)" -Password "$Pass" -RootPath $RootPath -Prog $TftpPath `
         -LogPath "$LogDir\get-config_$(Get-Date -format "dd.MM.yyyy hh.mm.ss")_$(Split-Path (Split-Path $Path -Parent) -Leaf).log" -WaitTime $WaitTime
     }
 } 
@@ -118,12 +123,12 @@ elseif ($Selection -eq 1) {
     Write-Host "Trying to determine target location of config..."
     Start-Sleep -Milliseconds 500
     try {
-        $DirNames = @(Split-Path (gc .\structure.txt | ? { $_ -match "$RemoteHost`_" }))
+        $DirNames = @(Split-Path (gc "$RootPath\structure.txt" | ? { $_ -match "$RemoteHost`_" }))
     } catch { $Path = "" }
     if ($DirNames.Length -ne 1) { $Path = "" } else { $Path = $DirNames[0] }
     if (! $Path) {
         Write-Host "Could not determine target location. "
-        $Path = ".\"
+        $Path = "$RootPath"
         Write-Host "Outputting Config into root dir."
     } else {
         Write-Host "Success; Outputting in $Path"
@@ -133,7 +138,7 @@ elseif ($Selection -eq 1) {
     
     $LogPath = "$LogDir\get-config-$(Get-Date -format "dd.MM.yyyy hh.mm.ss")_SINGLE_$RemoteHost.log"
     Get-Switch-Config -RemoteHosts "$RemoteHost" -OutPath "$Path" -Password "$Pass" `
-        -LogPath "$LogPath" -WaitTime ($WaitTime * 3)
+        -LogPath "$LogPath" -WaitTime ($WaitTime * 3) -RootPath $RootPath -Prog $TftpPath
     
     gc $LogPath
 
@@ -161,7 +166,7 @@ while ($Continue) {
             -Status "Switch $Count/$($Failures.Length)"
         $RemoteHost = $Line -replace ":.+", ""
         $Path = "$(([regex]::Match($Line, "(?<=@\\@).+(?=@\\@)")).Value)" # Getting output path from log
-        Get-Switch-Config -RemoteHosts "$RemoteHost" -OutPath "$Path" `
+        Get-Switch-Config -RemoteHosts "$RemoteHost" -OutPath "$Path" -RootPath $RootPath -Prog $TftpPath `
             -LogPath "$RetryLog" -Password "$Pass" -Silent -WaitTime $WaitTime
     }
 
