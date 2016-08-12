@@ -49,6 +49,18 @@ while (! ($MenuOptions -contains $Selection)) {
     $Selection = Read-Host "Please select an option "
 }
 
+if (0..1 -contains $Selection) {
+    # Start TFTP program and terminate if firewall is blocking
+    if (! (ps | ? { $_.Path -eq $TftpPath })) { & $TftpPath }
+
+    $FirewallRule = (Get-NetFirewallRule "TCP*skimh*tftpd*")
+    if(! ($FirewallRule.Enabled -and $FirewallRule.Action -eq "Allow")){
+        Write-Host "Firewall is blocking TFTPD64.EXE! The program cannot run if this is the case."
+        pause
+        exit
+    }
+}
+
 # Making a simple file contain the information that would require a lot of data from the remote file server if it were to be
 # executed every time the program is run.
 if ($Selection -eq 3) {
