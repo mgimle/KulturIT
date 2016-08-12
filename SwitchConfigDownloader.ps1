@@ -50,9 +50,6 @@ while (! ($MenuOptions -contains $Selection)) {
 }
 
 if (0..1 -contains $Selection) {
-    # Start TFTP program and terminate if firewall is blocking
-    if (! (ps | ? { $_.Path -eq $TftpPath })) { & $TftpPath }
-
     $FirewallRule = (Get-NetFirewallRule "TCP*skimh*tftpd*")
     if(! ($FirewallRule.Enabled -and $FirewallRule.Action -eq "Allow")){
         Write-Host "Firewall is blocking TFTPD64.EXE! The program cannot run if this is the case."

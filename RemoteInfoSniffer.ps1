@@ -1,4 +1,4 @@
-$ErrorActionPreference = "SilentlyContinue"
+﻿$ErrorActionPreference = "SilentlyContinue"
 $IPRegex = "(\d{1,3}\.){3}\d{1,3}"
 $MACRegex = "([A-F0-9]{2}-?){6}"
 
