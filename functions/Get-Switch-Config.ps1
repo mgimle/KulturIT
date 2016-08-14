@@ -26,7 +26,7 @@ Function Get-Switch-Config {
         Write-Verbose "Reading from file"
         $Path = (Resolve-Path "$(@($RemoteHosts)[0])".Substring(1)).Path
         $RemoteHosts = Get-Content $Path
-    }e
+    }
 
     if ($input -match "(\d{1,3}\.){3}\d{1,3}") {
         if ($input) {
